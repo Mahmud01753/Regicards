@@ -169,3 +169,11 @@ input{font-size:17px !important;padding:14px 16px !important}
   .college-hero-name-en{font-size:18px !important}
   .profile img{width:82px !important;height:100px !important}
 }
+
+/* 2026-09-09 final browser-safe green header: keep the same look in Chrome and Messenger */
+html{background:#07883f !important;}
+body{background:linear-gradient(180deg,#005f2f 0,#07883f 0,#07883f 520px,#f4f7fb 520px) !important;}
+.hero{background:linear-gradient(135deg,#004d27 0%,#07883f 48%,#16b65a 100%) !important;}
+@media(max-width:700px){
+  body{background:linear-gradient(180deg,#005f2f 0,#07883f 0,#07883f 600px,#f4f7fb 600px) !important;}
+}

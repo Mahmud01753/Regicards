@@ -292,15 +292,19 @@ function currentSiteUrl() {
 }
 
 function browserSearchUrl() {
-  const url = currentSiteUrl();
-  const params = new URLSearchParams(url.search);
+  // Always build an explicit website URL. Never reuse a PDF path.
+  const current = currentSiteUrl();
+  const url = new URL('index.html', current.href);
+  const params = new URLSearchParams(current.search);
   const regularInput = String($('regularSearch')?.value || '').trim();
   const privateInput = String($('privateSearch')?.value || '').trim();
   const regularQuery = regularInput || params.get('regular') || '';
   const privateQuery = privateInput || params.get('private') || '';
+
   url.search = '';
   if (regularQuery) url.searchParams.set('regular', regularQuery);
   if (privateQuery) url.searchParams.set('private', privateQuery);
+  url.hash = '';
   return url.toString();
 }
 
@@ -317,11 +321,40 @@ function openCoursePdf(course, student) {
   openInNewTab(`${file}#page=${Number(student.page)}`);
 }
 
+function showManualBrowserInstruction() {
+  const hint = document.querySelector('#downloadFallback .fallback-manual');
+  if (hint) hint.hidden = false;
+}
+
 function openInBrowser() {
-  const opened = openInNewTab(browserSearchUrl());
-  if (!opened) {
-    alert('Messenger-এর ভেতরের Browser নতুন উইন্ডো খুলতে না দিলে Messenger-এর ⋮ মেনু থেকে “Open in browser/Chrome” নির্বাচন করুন।');
+  // This target is always index.html with the active search query, never a PDF.
+  const target = browserSearchUrl();
+
+  // If the browser handoff does not leave Messenger, show the manual instruction.
+  const revealManualHint = () => {
+    window.setTimeout(() => {
+      if (!document.hidden) showManualBrowserInstruction();
+    }, 1800);
+  };
+
+  // On Android Messenger, an Android intent is the best chance to hand the page
+  // to Chrome. The fallback remains the same website URL with the search state.
+  if (/Android/i.test(navigator.userAgent || '')) {
+    try {
+      const parsed = new URL(target);
+      const intent = `intent://${parsed.host}${parsed.pathname}${parsed.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
+      window.location.href = intent;
+      revealManualHint();
+      return true;
+    } catch (error) {
+      console.warn('Chrome intent failed', error);
+    }
   }
+
+  const opened = openInNewTab(target);
+  if (!opened) showManualBrowserInstruction();
+  else revealManualHint();
+  return Boolean(opened);
 }
 
 function showDownloadFallback(course, student, kind = 'PDF') {
@@ -338,7 +371,7 @@ function showDownloadFallback(course, student, kind = 'PDF') {
       <button type="button" class="fallback-x" aria-label="বন্ধ করুন">✕</button>
       <div class="fallback-icon">⚠️</div>
       <strong>Messenger Browser</strong>
-      <p>Messenger-এর ভেতর থেকে ডাউনলোডের সুবিধা Meta বন্ধ করে দিয়েছে। ডাউনলোড করতে নিচের <b>‘Open in Browser’</b> বাটনে ক্লিক করে ব্রাউজারে ওয়েবসাইটটি খুলুন এবং সেখান থেকে ডাউনলোড করুন।</p><p class="fallback-manual">বাটনে ক্লিক করে Browser না খুললে Messenger-এর উপরের <b>⋮</b> (Three dots) মেনু থেকে <b>Open in browser</b> / <b>Chrome</b> নির্বাচন করুন।</p>
+      <p>Messenger-এর ভেতর থেকে ডাউনলোডের সুবিধা Meta বন্ধ করে দিয়েছে। ডাউনলোড করতে নিচের <b>‘Open in Browser’</b> বাটনে ক্লিক করে ব্রাউজারে ওয়েবসাইটটি খুলুন এবং সেখান থেকে ডাউনলোড করুন।</p><p class="fallback-manual" hidden><b>Browser না খুললে:</b> Messenger-এর উপরের <b>⋮</b> (Three dots) মেনু থেকে <b>Open in browser</b> / <b>Chrome</b> নির্বাচন করুন।</p>
       <div class="fallback-actions">
         <button type="button" class="fallback-site">🌐 Open in Browser</button>
         <button type="button" class="fallback-close">বন্ধ করুন</button>
