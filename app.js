@@ -44,11 +44,23 @@ function courseLabel(course) {
   return course === 'private' ? 'PRIVATE COURSE' : 'REGULAR COURSE';
 }
 
+function updateSearchState() {
+  const url = new URL(location.href);
+  const regularQuery = String($('regularSearch')?.value || '').trim();
+  const privateQuery = String($('privateSearch')?.value || '').trim();
+  if (regularQuery) url.searchParams.set('regular', regularQuery);
+  else url.searchParams.delete('regular');
+  if (privateQuery) url.searchParams.set('private', privateQuery);
+  else url.searchParams.delete('private');
+  history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+}
+
 function render(course, query = '') {
   const config = state.courses[course];
   const results = $(`${course}Results`);
   const status = $(`${course}Status`);
   const q = String(query).trim();
+  updateSearchState();
 
   if (!q) {
     status.textContent = '';
@@ -171,10 +183,6 @@ async function ensurePdfJs(course) {
 async function renderPreview(course, student, index, large = false) {
   const box = $(large ? 'zoomPreview' : `${course}Preview-${index}`);
   if (!box) return;
-  if (isMessengerWebView()) {
-    box.innerHTML = '<div class="preview-loading">Messenger-এর ভেতরে PDF Preview বন্ধ রাখা হয়েছে। ব্রাউজারে খুলে Preview/Download করুন।</div>';
-    return;
-  }
   try {
     const pdf = await ensurePdfJs(course);
     const page = await pdf.getPage(Number(student.page));
@@ -273,7 +281,8 @@ async function makePdfBlob(course, student) {
 }
 
 function isMessengerWebView() {
-  return /FBAN|FBAV|Messenger|Instagram/i.test(navigator.userAgent || '');
+  // Only Messenger should trigger the download restriction popup.
+  return /Messenger/i.test(navigator.userAgent || '');
 }
 
 function currentSiteUrl() {
@@ -329,7 +338,7 @@ function showDownloadFallback(course, student, kind = 'PDF') {
       <button type="button" class="fallback-x" aria-label="বন্ধ করুন">✕</button>
       <div class="fallback-icon">⚠️</div>
       <strong>Messenger Browser</strong>
-      <p>Messenger-এর ভেতর থেকে ডাউনলোডের সুবিধা Meta বন্ধ করে দিয়েছে। ডাউনলোড করতে নিচের <b>‘Open in Browser’</b> বাটনে ক্লিক করে ব্রাউজারে ওয়েবসাইটটি খুলুন এবং সেখান থেকে ডাউনলোড করুন।</p>
+      <p>Messenger-এর ভেতর থেকে ডাউনলোডের সুবিধা Meta বন্ধ করে দিয়েছে। ডাউনলোড করতে নিচের <b>‘Open in Browser’</b> বাটনে ক্লিক করে ব্রাউজারে ওয়েবসাইটটি খুলুন এবং সেখান থেকে ডাউনলোড করুন।</p><p class="fallback-manual">বাটনে ক্লিক করে Browser না খুললে Messenger-এর উপরের <b>⋮</b> (Three dots) মেনু থেকে <b>Open in browser</b> / <b>Chrome</b> নির্বাচন করুন।</p>
       <div class="fallback-actions">
         <button type="button" class="fallback-site">🌐 Open in Browser</button>
         <button type="button" class="fallback-close">বন্ধ করুন</button>
@@ -339,7 +348,9 @@ function showDownloadFallback(course, student, kind = 'PDF') {
   const close = () => wrap.remove();
   wrap.querySelector('.fallback-x').onclick = close;
   wrap.querySelector('.fallback-close').onclick = close;
-  wrap.querySelector('.fallback-site').onclick = openInBrowser;
+  wrap.querySelector('.fallback-site').onclick = () => {
+    openInBrowser();
+  };
 }
 
 function triggerDownload(blob, filename) {

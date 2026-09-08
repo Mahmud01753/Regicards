@@ -52,3 +52,120 @@ input:focus{border-color:#1769c2;box-shadow:0 0 0 3px rgba(23,105,194,.12)}
   .hero{border-top-width:4px}
   .facebook{font-size:14px;padding:9px 13px}
 }
+
+/* Final green header: everything above the search cards is visually unified */
+body{
+  background:#f4f7fb;
+}
+.wrap{
+  max-width:960px;
+}
+.hero{
+  background:linear-gradient(135deg,#005f2f 0%,#008a43 45%,#11a85b 100%) !important;
+  color:#fff !important;
+  border:0 !important;
+  border-radius:0 0 28px 28px !important;
+  margin:-18px -14px 16px !important;
+  padding:34px 30px 30px !important;
+  box-shadow:0 18px 42px rgba(0,102,52,.25) !important;
+}
+.hero::before{background:radial-gradient(circle,#ffffff24 0 2px,transparent 3px) 0 0/28px 28px !important;opacity:.7}
+.hero::after{border:2px solid rgba(255,255,255,.16) !important;width:330px !important;height:330px !important;left:auto !important;right:-150px !important;bottom:-190px !important}
+.hero-top{align-items:center !important;gap:28px !important}
+.college-hero-name{
+  color:#fff !important;
+  font-size:clamp(42px,10vw,78px) !important;
+  font-weight:1000 !important;
+  line-height:.98 !important;
+  letter-spacing:-.045em !important;
+  text-shadow:0 4px 22px rgba(0,45,22,.55) !important;
+  margin-bottom:8px !important;
+}
+.college-hero-name-en{
+  color:#eafff0 !important;
+  font-size:clamp(18px,4vw,28px) !important;
+  font-weight:900 !important;
+  letter-spacing:.045em !important;
+  margin-bottom:22px !important;
+}
+.badge{
+  color:#dfffea !important;
+  font-size:clamp(13px,2.4vw,17px) !important;
+  font-weight:900 !important;
+  letter-spacing:.11em !important;
+}
+.hero h1{
+  color:#fff !important;
+  font-size:clamp(32px,7.4vw,54px) !important;
+  font-weight:1000 !important;
+  margin:10px 0 12px !important;
+  text-shadow:0 3px 18px rgba(0,48,22,.45) !important;
+}
+.intro{
+  color:#f3fff7 !important;
+  font-size:clamp(16px,2.7vw,20px) !important;
+  line-height:1.65 !important;
+  font-weight:700 !important;
+  max-width:760px !important;
+}
+.course-info{gap:10px !important;margin-top:20px !important}
+.course-info span{
+  background:rgba(255,255,255,.13) !important;
+  border:1px solid rgba(255,255,255,.28) !important;
+  color:#fff !important;
+  font-size:clamp(14px,2.3vw,17px) !important;
+  font-weight:800 !important;
+  padding:12px 14px !important;
+  border-radius:14px !important;
+}
+.creator-row{margin-top:20px !important;gap:14px !important}
+.design-by{color:#eafff0 !important;font-size:15px !important;font-weight:700 !important}
+.facebook{
+  background:#e11d2e !important;
+  border:2px solid rgba(255,255,255,.55) !important;
+  color:#fff !important;
+  font-size:17px !important;
+  padding:12px 20px !important;
+  box-shadow:0 9px 22px rgba(90,0,8,.38) !important;
+}
+.profile img{
+  width:145px !important;
+  height:175px !important;
+  border:4px solid #fff !important;
+  box-shadow:0 14px 34px rgba(0,42,20,.45) !important;
+}
+.profile-name{color:#fff !important;font-size:17px !important;font-weight:900 !important}
+.profile-father{color:#eafff0 !important}
+
+/* Search area stays clean while all header text remains large and readable */
+.search-card{
+  border-left:5px solid #07883f !important;
+}
+.private-card{border-left-color:#16a34a !important}
+.course-title span{font-size:clamp(20px,4vw,26px) !important}
+.course-title small{font-size:clamp(13px,2.3vw,16px) !important}
+.search-card label{font-size:clamp(16px,2.8vw,19px) !important}
+.search-card .hint{font-size:14px !important}
+input{font-size:17px !important;padding:14px 16px !important}
+.search-btn{font-size:17px !important;min-height:50px !important}
+.secondary{font-size:16px !important;min-height:50px !important}
+
+.fallback-dialog strong{font-size:22px !important}
+.fallback-dialog p{font-size:16px !important;color:#334155 !important}
+.fallback-manual{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:11px 12px !important;color:#166534 !important}
+.fallback-actions .fallback-site{background:#07883f !important;font-size:16px !important}
+
+@media(max-width:700px){
+  .wrap{padding:0 10px 28px !important}
+  .hero{margin:0 -10px 16px !important;padding:28px 18px 24px !important;border-radius:0 0 24px 24px !important}
+  .college-hero-name{font-size:clamp(40px,13vw,60px) !important}
+  .hero h1{font-size:clamp(30px,8.5vw,46px) !important}
+  .hero-top{gap:18px !important}
+  .profile img{width:110px !important;height:135px !important}
+}
+@media(max-width:420px){
+  .hero{padding:24px 16px 22px !important}
+  .college-hero-name{font-size:clamp(38px,13vw,52px) !important}
+  .college-hero-name-en{font-size:18px !important}
+  .profile img{width:82px !important;height:100px !important}
+}
