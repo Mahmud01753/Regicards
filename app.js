@@ -171,6 +171,10 @@ async function ensurePdfJs(course) {
 async function renderPreview(course, student, index, large = false) {
   const box = $(large ? 'zoomPreview' : `${course}Preview-${index}`);
   if (!box) return;
+  if (isMessengerWebView()) {
+    box.innerHTML = '<div class="preview-loading">Messenger-এর ভেতরে PDF Preview বন্ধ রাখা হয়েছে। ব্রাউজারে খুলে Preview/Download করুন।</div>';
+    return;
+  }
   try {
     const pdf = await ensurePdfJs(course);
     const page = await pdf.getPage(Number(student.page));
@@ -230,6 +234,10 @@ function getZoomCanvas() {
 
 function downloadRenderedZoomImage(type) {
   const info = state.zoomStudent;
+  if (isMessengerWebView()) {
+    if (info) showDownloadFallback(info.course, info.student, type.toUpperCase());
+    return;
+  }
   const canvas = getZoomCanvas();
   if (!info || !canvas) {
     alert('কার্ডটি আগে পুরোপুরি Preview হতে দিন।');
@@ -269,27 +277,41 @@ function isMessengerWebView() {
 }
 
 function currentSiteUrl() {
-  return location.href.split('#')[0];
+  const url = new URL(location.href);
+  url.hash = '';
+  return url;
+}
+
+function browserSearchUrl() {
+  const url = currentSiteUrl();
+  const params = new URLSearchParams(url.search);
+  const regularInput = String($('regularSearch')?.value || '').trim();
+  const privateInput = String($('privateSearch')?.value || '').trim();
+  const regularQuery = regularInput || params.get('regular') || '';
+  const privateQuery = privateInput || params.get('private') || '';
+  url.search = '';
+  if (regularQuery) url.searchParams.set('regular', regularQuery);
+  if (privateQuery) url.searchParams.set('private', privateQuery);
+  return url.toString();
 }
 
 function openInNewTab(url) {
-  const win = window.open(url, '_blank', 'noopener,noreferrer');
-  if (!win) {
-    try { location.href = url; } catch (error) { console.error(error); }
-  }
-  return win;
+  return window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function openCoursePdf(course, student) {
+  if (isMessengerWebView()) {
+    showDownloadFallback(course, student, 'PDF');
+    return;
+  }
   const file = course === 'private' ? 'private-registration-cards.pdf' : 'registration-cards.pdf';
   openInNewTab(`${file}#page=${Number(student.page)}`);
 }
 
 function openInBrowser() {
-  const url = currentSiteUrl();
-  const opened = openInNewTab(url);
+  const opened = openInNewTab(browserSearchUrl());
   if (!opened) {
-    alert('Messenger-এর ভেতরের Browser নতুন tab খুলতে না দিলে Messenger-এর ⋮ মেনু থেকে “Open in browser/Chrome” নির্বাচন করুন।');
+    alert('Messenger-এর ভেতরের Browser নতুন উইন্ডো খুলতে না দিলে Messenger-এর ⋮ মেনু থেকে “Open in browser/Chrome” নির্বাচন করুন।');
   }
 }
 
@@ -300,18 +322,24 @@ function showDownloadFallback(course, student, kind = 'PDF') {
   const wrap = document.createElement('div');
   wrap.id = 'downloadFallback';
   wrap.className = 'download-fallback';
-  const title = kind === 'PDF' ? '📄 PDF Download না হলে' : `🖼️ ${kind} Download না হলে`;
-  wrap.innerHTML = `<strong>${title}</strong>
-    <span>Messenger-এর WebView অনেক সময় file download ব্লক করে। নিচের বিকল্প ব্যবহার করুন:</span>
-    <div class="fallback-actions">
-      <button type="button" class="fallback-open">📄 PDF Browser-এ খুলুন</button>
-      <button type="button" class="fallback-site">🌐 Open in Browser</button>
-      <button type="button" class="fallback-close">বন্ধ করুন</button>
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-modal', 'true');
+  wrap.innerHTML = `<div class="fallback-backdrop"></div>
+    <div class="fallback-dialog">
+      <button type="button" class="fallback-x" aria-label="বন্ধ করুন">✕</button>
+      <div class="fallback-icon">⚠️</div>
+      <strong>Messenger Browser</strong>
+      <p>Messenger-এর ভেতর থেকে ডাউনলোডের সুবিধা Meta বন্ধ করে দিয়েছে। ডাউনলোড করতে নিচের <b>‘Open in Browser’</b> বাটনে ক্লিক করে ব্রাউজারে ওয়েবসাইটটি খুলুন এবং সেখান থেকে ডাউনলোড করুন।</p>
+      <div class="fallback-actions">
+        <button type="button" class="fallback-site">🌐 Open in Browser</button>
+        <button type="button" class="fallback-close">বন্ধ করুন</button>
+      </div>
     </div>`;
   document.body.appendChild(wrap);
-  wrap.querySelector('.fallback-open').onclick = () => openCoursePdf(course, student);
+  const close = () => wrap.remove();
+  wrap.querySelector('.fallback-x').onclick = close;
+  wrap.querySelector('.fallback-close').onclick = close;
   wrap.querySelector('.fallback-site').onclick = openInBrowser;
-  wrap.querySelector('.fallback-close').onclick = () => wrap.remove();
 }
 
 function triggerDownload(blob, filename) {
@@ -336,6 +364,10 @@ function openBlob(blob, filename) {
 }
 
 async function downloadCard(course, student, button) {
+  if (isMessengerWebView()) {
+    showDownloadFallback(course, student, 'PDF');
+    return;
+  }
   const old = button.textContent;
   button.disabled = true;
   button.textContent = 'Preparing…';
@@ -354,6 +386,10 @@ async function downloadCard(course, student, button) {
 }
 
 async function shareCard(course, student, button) {
+  if (isMessengerWebView()) {
+    showDownloadFallback(course, student, 'PDF');
+    return;
+  }
   const old = button.textContent;
   button.disabled = true;
   button.textContent = 'শেয়ার হচ্ছে…';
@@ -409,6 +445,10 @@ async function renderImageBlob(course, student, type) {
 
 
 async function shareCardImage(course, student, type, button) {
+  if (isMessengerWebView()) {
+    showDownloadFallback(course, student, type.toUpperCase());
+    return;
+  }
   const old = button.textContent;
   button.disabled = true;
   button.textContent = 'তৈরি হচ্ছে…';
@@ -447,6 +487,10 @@ async function shareCardImage(course, student, type, button) {
 }
 
 async function downloadCardImage(course, student, type, button) {
+  if (isMessengerWebView()) {
+    showDownloadFallback(course, student, type.toUpperCase());
+    return;
+  }
   const old = button.textContent;
   button.disabled = true;
   button.textContent = 'তৈরি হচ্ছে…';
@@ -487,12 +531,24 @@ document.addEventListener('keydown', event => { if (event.key === 'Escape') clos
 setupCourse('regular');
 setupCourse('private');
 
+const initialParams = new URLSearchParams(location.search);
+const initialRegularQuery = initialParams.get('regular') || '';
+const initialPrivateQuery = initialParams.get('private') || '';
+$('regularSearch').value = initialRegularQuery;
+$('privateSearch').value = initialPrivateQuery;
+
+if (isMessengerWebView()) {
+  showDownloadFallback(null, null, 'DOWNLOAD');
+}
+
 Promise.all([loadCourseData('regular'), loadCourseData('private')])
   .then(() => {
-    render('regular');
-    render('private');
-    $('regularStatus').textContent = `Regular Course: ${state.courses.regular.students.length}টি search record প্রস্তুত।`;
-    $('privateStatus').textContent = `Private Course: ${state.courses.private.students.length}টি search record প্রস্তুত।`;
+    const regularQuery = initialRegularQuery;
+    const privateQuery = initialPrivateQuery;
+    render('regular', regularQuery);
+    render('private', privateQuery);
+    if (!regularQuery) $('regularStatus').textContent = `Regular Course: ${state.courses.regular.students.length}টি search record প্রস্তুত।`;
+    if (!privateQuery) $('privateStatus').textContent = `Private Course: ${state.courses.private.students.length}টি search record প্রস্তুত।`;
   })
   .catch(error => {
     console.error(error);
