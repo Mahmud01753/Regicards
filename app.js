@@ -537,9 +537,6 @@ const initialPrivateQuery = initialParams.get('private') || '';
 $('regularSearch').value = initialRegularQuery;
 $('privateSearch').value = initialPrivateQuery;
 
-if (isMessengerWebView()) {
-  showDownloadFallback(null, null, 'DOWNLOAD');
-}
 
 Promise.all([loadCourseData('regular'), loadCourseData('private')])
   .then(() => {
