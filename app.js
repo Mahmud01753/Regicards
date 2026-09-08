@@ -264,9 +264,8 @@ function downloadRenderedZoomImage(type) {
 }
 
 function setupZoomActions() {
-  $('zoomPdfOpen').onclick = () => {
-    if (state.zoomStudent) openCoursePdf(state.zoomStudent.course, state.zoomStudent.student);
-  };
+  // Full source PDF opening is intentionally disabled everywhere.
+  // Zoom preview only supports image downloads for the currently rendered card.
   $('zoomJpgDownload').onclick = () => downloadRenderedZoomImage('jpg');
   $('zoomPngDownload').onclick = () => downloadRenderedZoomImage('png');
 }
@@ -312,14 +311,6 @@ function openInNewTab(url) {
   return window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-function openCoursePdf(course, student) {
-  if (isMessengerWebView()) {
-    showDownloadFallback(course, student, 'PDF');
-    return;
-  }
-  const file = course === 'private' ? 'private-registration-cards.pdf' : 'registration-cards.pdf';
-  openInNewTab(`${file}#page=${Number(student.page)}`);
-}
 
 function showManualBrowserInstruction() {
   const hint = document.querySelector('#downloadFallback .fallback-manual');
